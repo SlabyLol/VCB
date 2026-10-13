@@ -1,0 +1,71 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vcb"
+version = "1.0.0"
+description = "Voice Conversion Binary (VCB) - Convert speech audio (MP3/WAV) into portable .vcb voice files and synthesize speech with custom voices."
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "DarkFox", email = "darkfox@darkfoxco.com"}
+]
+maintainers = [
+    {name = "DarkFox", email = "darkfox@darkfoxco.com"}
+]
+keywords = [
+    "voice",
+    "voice-cloning",
+    "voice-conversion",
+    "tts",
+    "speech",
+    "audio",
+    "vcb",
+    "speech-synthesis"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+    "librosa>=0.10.0",
+    "soundfile>=0.12.0",
+    "pydub>=0.25.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "black>=23.0",
+    "mypy>=1.0",
+]
+js = []
+
+[project.urls]
+Homepage = "https://github.com/SlabyLol/VCB"
+Documentation = "https://github.com/SlabyLol/VCB#readme"
+Repository = "https://github.com/SlabyLol/VCB"
+Issues = "https://github.com/SlabyLol/VCB/issues"
+"Bug Tracker" = "https://github.com/SlabyLol/VCB/issues"
+
+[project.scripts]
+vcb = "vcb.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+vcb = ["py.typed"]
