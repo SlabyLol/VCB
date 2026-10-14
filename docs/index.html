@@ -1,578 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VCB – Voice Conversion Binary</title>
-  <meta name="description" content="Record your voice, create .vcb files and make any voice speak. Python + Browser." />
-  <link rel="icon" type="image/svg+xml" href="assets/icon.svg" />
-  <style>
-    :root {
-      --bg: #0f172a;
-      --surface: #1e293b;
-      --surface2: #334155;
-      --text: #e2e8f0;
-      --muted: #94a3b8;
-      --accent: #38bdf8;
-      --accent2: #818cf8;
-      --pink: #f472b6;
-      --success: #34d399;
-      --danger: #f87171;
-      --radius: 16px;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      line-height: 1.5;
-    }
-
-    .hero {
-      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
-      padding: 2.5rem 1.5rem 2rem;
-      text-align: center;
-      border-bottom: 1px solid #1e293b;
-    }
-
-    .hero img.banner {
-      max-width: 100%;
-      height: auto;
-      border-radius: 12px;
-      margin-bottom: 1rem;
-    }
-
-    .hero h1 {
-      font-size: clamp(2rem, 5vw, 3rem);
-      font-weight: 800;
-      background: linear-gradient(90deg, #38bdf8, #a78bfa, #f472b6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 0.4rem;
-    }
-
-    .hero p {
-      color: var(--muted);
-      font-size: 1.1rem;
-      max-width: 560px;
-      margin: 0 auto 1.2rem;
-    }
-
-    .badges {
-      display: flex;
-      gap: 0.6rem;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .badge {
-      background: var(--surface);
-      color: var(--muted);
-      padding: 0.3rem 0.75rem;
-      border-radius: 999px;
-      font-size: 0.8rem;
-      border: 1px solid #334155;
-    }
-
-    main {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 2rem 1.25rem 4rem;
-      display: grid;
-      gap: 1.75rem;
-    }
-
-    .card {
-      background: var(--surface);
-      border-radius: var(--radius);
-      padding: 1.5rem;
-      border: 1px solid #334155;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.25);
-    }
-
-    .card h2 {
-      font-size: 1.25rem;
-      margin-bottom: 0.75rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .card h2 span.num {
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: #0f172a;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.85rem;
-      font-weight: 700;
-    }
-
-    .card p.desc {
-      color: var(--muted);
-      font-size: 0.95rem;
-      margin-bottom: 1.25rem;
-    }
-
-    .record-area {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .rec-btn {
-      width: 90px;
-      height: 90px;
-      border-radius: 50%;
-      border: 4px solid var(--accent);
-      background: var(--bg);
-      color: var(--accent);
-      font-size: 2rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .rec-btn:hover { transform: scale(1.05); }
-    .rec-btn.recording {
-      background: var(--danger);
-      border-color: var(--danger);
-      color: white;
-      animation: pulse 1.2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.5); }
-      50% { box-shadow: 0 0 0 16px rgba(248, 113, 113, 0); }
-    }
-
-    .timer {
-      font-variant-numeric: tabular-nums;
-      font-size: 1.4rem;
-      color: var(--muted);
-      min-height: 1.6rem;
-    }
-
-    .rec-actions {
-      display: flex;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    button, .btn {
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: #0f172a;
-      border: none;
-      padding: 0.65rem 1.25rem;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: opacity 0.15s, transform 0.15s;
-    }
-
-    button:hover, .btn:hover { opacity: 0.9; transform: translateY(-1px); }
-    button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-
-    button.secondary {
-      background: var(--surface2);
-      color: var(--text);
-    }
-
-    button.danger {
-      background: var(--danger);
-      color: white;
-    }
-
-    .speak-form {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    label {
-      font-size: 0.85rem;
-      color: var(--muted);
-      margin-bottom: 0.25rem;
-      display: block;
-    }
-
-    input[type="text"], textarea, input[type="file"] {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid #475569;
-      border-radius: 10px;
-      padding: 0.75rem 1rem;
-      color: var(--text);
-      font-size: 1rem;
-      font-family: inherit;
-    }
-
-    textarea { min-height: 90px; resize: vertical; }
-
-    input[type="file"] {
-      padding: 0.6rem;
-      cursor: pointer;
-    }
-
-    .voice-info {
-      background: var(--bg);
-      border-radius: 10px;
-      padding: 0.85rem 1rem;
-      font-size: 0.9rem;
-      color: var(--muted);
-      display: none;
-    }
-
-    .voice-info.active { display: block; }
-    .voice-info strong { color: var(--accent); }
-
-    .row {
-      display: flex;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .status {
-      font-size: 0.9rem;
-      color: var(--muted);
-      min-height: 1.3rem;
-    }
-
-    .status.ok { color: var(--success); }
-    .status.err { color: var(--danger); }
-
-    .steps {
-      display: grid;
-      gap: 0.85rem;
-    }
-
-    .step {
-      display: flex;
-      gap: 0.85rem;
-      align-items: flex-start;
-    }
-
-    .step .n {
-      background: var(--surface2);
-      min-width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 0.85rem;
-      color: var(--accent);
-    }
-
-    code {
-      background: #0f172a;
-      padding: 0.15rem 0.4rem;
-      border-radius: 5px;
-      font-size: 0.85em;
-      color: #7dd3fc;
-    }
-
-    pre {
-      background: #0f172a;
-      padding: 1rem;
-      border-radius: 10px;
-      overflow-x: auto;
-      font-size: 0.85rem;
-      margin-top: 0.5rem;
-      border: 1px solid #334155;
-    }
-
-    footer {
-      text-align: center;
-      padding: 2rem 1rem;
-      color: var(--muted);
-      font-size: 0.85rem;
-      border-top: 1px solid #1e293b;
-    }
-
-    footer a { color: var(--accent); text-decoration: none; }
-
-    @media (max-width: 600px) {
-      .card { padding: 1.15rem; }
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>VCB – Voice Conversion Binary</title>
+<meta name="description" content="Record or upload speech, convert to .vcb in the browser, make any voice speak."/>
+<link rel="icon" type="image/svg+xml" href="assets/icon.svg"/>
+<style>
+:root{--bg:#0f172a;--surface:#1e293b;--surface2:#334155;--text:#e2e8f0;--muted:#94a3b8;--accent:#38bdf8;--accent2:#818cf8;--success:#34d399;--danger:#f87171;--radius:16px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+.hero{background:linear-gradient(135deg,#0f172a,#1e1b4b,#0f172a);padding:2.5rem 1.5rem 2rem;text-align:center;border-bottom:1px solid #1e293b}
+.hero img.banner{max-width:100%;height:auto;border-radius:12px;margin-bottom:1rem}
+.hero h1{font-size:clamp(2rem,5vw,3rem);font-weight:800;background:linear-gradient(90deg,#38bdf8,#a78bfa,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.4rem}
+.hero p{color:var(--muted);font-size:1.1rem;max-width:560px;margin:0 auto 1.2rem}
+.badges{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
+.badge{background:var(--surface);color:var(--muted);padding:.3rem .75rem;border-radius:999px;font-size:.8rem;border:1px solid #334155}
+main{max-width:900px;margin:0 auto;padding:2rem 1.25rem 4rem;display:grid;gap:1.75rem}
+.card{background:var(--surface);border-radius:var(--radius);padding:1.5rem;border:1px solid #334155;box-shadow:0 4px 24px rgba(0,0,0,.25)}
+.card h2{font-size:1.25rem;margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+.card h2 span.num{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0f172a;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700}
+.card p.desc{color:var(--muted);font-size:.95rem;margin-bottom:1.25rem}
+.record-area{display:flex;flex-direction:column;align-items:center;gap:1rem}
+.rec-btn{width:90px;height:90px;border-radius:50%;border:4px solid var(--accent);background:var(--bg);color:var(--accent);font-size:2rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.rec-btn.recording{background:var(--danger);border-color:var(--danger);color:#fff;animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(248,113,113,.5)}50%{box-shadow:0 0 0 16px transparent}}
+.timer{font-variant-numeric:tabular-nums;font-size:1.4rem;color:var(--muted)}
+.rec-actions,.row{display:flex;gap:.75rem;flex-wrap:wrap;justify-content:center;align-items:center}
+button{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0f172a;border:none;padding:.65rem 1.25rem;border-radius:10px;font-weight:600;font-size:.95rem;cursor:pointer}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.secondary{background:var(--surface2);color:var(--text)}
+.speak-form{display:flex;flex-direction:column;gap:1rem}
+label{font-size:.85rem;color:var(--muted);margin-bottom:.25rem;display:block}
+input[type=text],textarea,input[type=file]{width:100%;background:var(--bg);border:1px solid #475569;border-radius:10px;padding:.75rem 1rem;color:var(--text);font-size:1rem;font-family:inherit}
+textarea{min-height:90px;resize:vertical}
+.voice-info{background:var(--bg);border-radius:10px;padding:.85rem 1rem;font-size:.9rem;color:var(--muted);display:none}
+.voice-info.active{display:block}.voice-info strong{color:var(--accent)}
+.status{font-size:.9rem;color:var(--muted);min-height:1.3rem}.status.ok{color:var(--success)}.status.err{color:var(--danger)}
+.steps{display:grid;gap:.85rem}.step{display:flex;gap:.85rem;align-items:flex-start}
+.step .n{background:var(--surface2);min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;color:var(--accent)}
+code{background:#0f172a;padding:.15rem .4rem;border-radius:5px;font-size:.85em;color:#7dd3fc}
+pre{background:#0f172a;padding:1rem;border-radius:10px;overflow-x:auto;font-size:.85rem;margin-top:.5rem;border:1px solid #334155}
+footer{text-align:center;padding:2rem 1rem;color:var(--muted);font-size:.85rem;border-top:1px solid #1e293b}
+footer a{color:var(--accent);text-decoration:none}
+.name-row{display:flex;gap:.75rem;width:100%;max-width:400px}
+.name-row>div{flex:1}
+</style>
 </head>
 <body>
-  <header class="hero">
-    <img class="banner" src="assets/banner.svg" alt="VCB Banner" width="900" />
-    <h1>VCB</h1>
-    <p>Record speech → create a portable <code>.vcb</code> voice → make it speak any text</p>
-    <div class="badges">
-      <span class="badge">Python package</span>
-      <span class="badge">Browser API</span>
-      <span class="badge">MIT · DarkFox</span>
-    </div>
-  </header>
+<header class="hero">
+<img class="banner" src="assets/banner.svg" alt="VCB Banner" width="900"/>
+<h1>VCB</h1>
+<p>Record or upload speech → convert to <code>.vcb</code> <strong>in the browser</strong> → make that voice speak</p>
+<div class="badges">
+<span class="badge">Browser convert</span>
+<span class="badge">JS API</span>
+<span class="badge">Python package</span>
+<span class="badge">MIT · DarkFox</span>
+</div>
+</header>
+<main>
+<section class="card">
+<h2><span class="num">1</span> Record or upload → Convert to .vcb</h2>
+<p class="desc">Runs fully in your browser. Speak 10–30 seconds or upload audio, then convert to a portable <code>.vcb</code> file.</p>
+<div class="record-area">
+<button id="recBtn" class="rec-btn" title="Start/Stop">●</button>
+<div class="timer" id="timer">00:00</div>
+<div class="name-row"><div><label for="voiceName">Voice name</label><input type="text" id="voiceName" value="my-voice"/></div></div>
+<div class="rec-actions">
+<button id="convertRec" disabled>Convert to .vcb</button>
+<button id="downloadRec" class="secondary" disabled>Download audio</button>
+<button id="clearRec" class="secondary" disabled>Clear</button>
+</div>
+<div style="width:100%;max-width:400px">
+<label for="audioUpload">Or upload audio (mp3, wav, …)</label>
+<input type="file" id="audioUpload" accept="audio/*,.mp3,.wav,.ogg,.webm"/>
+</div>
+<audio id="preview" controls style="display:none;margin-top:.5rem;width:100%;max-width:360px"></audio>
+<div class="status" id="recStatus"></div>
+</div>
+</section>
+<section class="card">
+<h2><span class="num">2</span> Load .vcb & Speak</h2>
+<p class="desc">Upload a <code>.vcb</code> and type text. The browser synthesizer speaks with that voice.</p>
+<div class="speak-form">
+<div><label for="vcbFile">Select .vcb voice file</label><input type="file" id="vcbFile" accept=".vcb"/></div>
+<div class="voice-info" id="voiceInfo">Loaded: <strong id="voiceNameDisp">—</strong> · Pitch <span id="voicePitch">—</span> Hz · Duration <span id="voiceDur">—</span> s</div>
+<div><label for="speakText">Text to speak</label><textarea id="speakText">Hello, this is my custom voice speaking through VCB.</textarea></div>
+<div class="row"><button id="speakBtn" disabled>Speak</button><button id="downloadSynth" class="secondary" disabled>Download WAV</button></div>
+<div class="status" id="speakStatus"></div>
+</div>
+</section>
+<section class="card">
+<h2><span class="num">3</span> JavaScript API</h2>
+<p class="desc">Use the same API in your own site:</p>
+<pre>import { convertAudioToVcb, loadVcbFromFile, speak } from "./js/vcb.js";
 
-  <main>
-    <section class="card">
-      <h2><span class="num">1</span> Record your voice</h2>
-      <p class="desc">Speak clearly for 10–30 seconds. The recording is saved as a WAV file that you can convert to <code>.vcb</code> with the Python package.</p>
+const { blob, voice } = await convertAudioToVcb(audioBlob, { voiceName: "alice" });
+// download blob as alice.vcb
 
-      <div class="record-area">
-        <button id="recBtn" class="rec-btn" title="Start / Stop recording">●</button>
-        <div class="timer" id="timer">00:00</div>
-        <div class="rec-actions">
-          <button id="downloadRec" class="secondary" disabled>Download WAV</button>
-          <button id="clearRec" class="secondary" disabled>Clear</button>
-        </div>
-        <audio id="preview" controls style="display:none; margin-top:0.5rem; width:100%; max-width:360px;"></audio>
-        <div class="status" id="recStatus"></div>
-      </div>
-    </section>
+const v = await loadVcbFromFile(vcbFile);
+await speak("Hello world", v);</pre>
+<p class="desc" style="margin-top:1rem;margin-bottom:0">Python (optional):</p>
+<pre>pip install vcb
+vcb convert recording.wav -n my-voice
+vcb speak my-voice.vcb "Hello" -o out.wav</pre>
+</section>
+<section class="card">
+<h2>How it works</h2>
+<div class="steps">
+<div class="step"><div class="n">1</div><div>Record or upload clear speech in the browser.</div></div>
+<div class="step"><div class="n">2</div><div>JS extracts pitch, formants, spectral features and MFCCs, packs them into a <code>.vcb</code> binary (same format as Python).</div></div>
+<div class="step"><div class="n">3</div><div>Load the <code>.vcb</code> and synthesize any text in the browser or with Python.</div></div>
+</div>
+<p style="margin-top:1.25rem;color:var(--muted);font-size:.9rem">Source → <a href="https://github.com/SlabyLol/VCB" style="color:var(--accent)">github.com/SlabyLol/VCB</a></p>
+</section>
+</main>
+<footer>Copyright © 2026 <strong>DarkFox</strong> / DarkFox Co. · MIT License<br>
+<a href="https://github.com/SlabyLol/VCB">GitHub</a> · <a href="https://github.com/SlabyLol/VCB#readme">Docs</a></footer>
+<script type="module">
+import { convertAudioToVcb, loadVcbFromFile, synthesize, speak, encodeWav } from "./js/vcb.js";
 
-    <section class="card">
-      <h2><span class="num">2</span> Convert to .vcb (Python)</h2>
-      <p class="desc">Full voice analysis needs the Python package. Run this on your machine after downloading the recording:</p>
-      <pre>pip install vcb
-vcb convert your-recording.wav -n my-voice -o my-voice.vcb</pre>
-      <p class="desc" style="margin-top:0.75rem; margin-bottom:0;">Or in Python:</p>
-      <pre>from vcb import convert_audio_to_vcb
-convert_audio_to_vcb("your-recording.wav", voice_name="my-voice")</pre>
-    </section>
+const recBtn=document.getElementById("recBtn"), timerEl=document.getElementById("timer");
+const convertRec=document.getElementById("convertRec"), downloadRec=document.getElementById("downloadRec");
+const clearRec=document.getElementById("clearRec"), preview=document.getElementById("preview");
+const recStatus=document.getElementById("recStatus"), voiceNameInput=document.getElementById("voiceName");
+const audioUpload=document.getElementById("audioUpload");
+let mediaRecorder=null, chunks=[], recStart=0, timerInterval=null, recordedBlob=null;
 
-    <section class="card">
-      <h2><span class="num">3</span> Load .vcb &amp; Speak</h2>
-      <p class="desc">Upload a <code>.vcb</code> file and type any text. The browser synthesizer will speak with that voice.</p>
+function formatTime(ms){const s=Math.floor(ms/1000),m=Math.floor(s/60);return String(m).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
+function setAudioReady(blob){recordedBlob=blob;preview.src=URL.createObjectURL(blob);preview.style.display="block";convertRec.disabled=false;downloadRec.disabled=false;clearRec.disabled=false}
 
-      <div class="speak-form">
-        <div>
-          <label for="vcbFile">Select .vcb voice file</label>
-          <input type="file" id="vcbFile" accept=".vcb" />
-        </div>
+recBtn.addEventListener("click",async()=>{
+  if(mediaRecorder&&mediaRecorder.state==="recording"){mediaRecorder.stop();return}
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    chunks=[];mediaRecorder=new MediaRecorder(stream,{mimeType:"audio/webm"});
+    mediaRecorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+    mediaRecorder.onstop=()=>{stream.getTracks().forEach(t=>t.stop());setAudioReady(new Blob(chunks,{type:"audio/webm"}));recBtn.classList.remove("recording");recBtn.textContent="●";clearInterval(timerInterval);recStatus.textContent="Recording ready – click Convert to .vcb";recStatus.className="status ok"};
+    mediaRecorder.start();recStart=Date.now();recBtn.classList.add("recording");recBtn.textContent="■";
+    recStatus.textContent="Recording… speak clearly";recStatus.className="status";
+    timerInterval=setInterval(()=>{timerEl.textContent=formatTime(Date.now()-recStart)},200);
+  }catch(err){recStatus.textContent="Microphone access denied.";recStatus.className="status err"}
+});
 
-        <div class="voice-info" id="voiceInfo">
-          Loaded: <strong id="voiceName">—</strong>
-          · Pitch <span id="voicePitch">—</span> Hz
-          · Duration <span id="voiceDur">—</span> s
-        </div>
+audioUpload.addEventListener("change",e=>{const f=e.target.files?.[0];if(!f)return;setAudioReady(f);recStatus.textContent="Audio loaded – click Convert to .vcb";recStatus.className="status ok";if(!voiceNameInput.value||voiceNameInput.value==="my-voice")voiceNameInput.value=f.name.replace(/\.[^.]+$/,"")||"my-voice"});
 
-        <div>
-          <label for="speakText">Text to speak</label>
-          <textarea id="speakText" placeholder="Hello, this is my custom voice speaking through VCB...">Hello, this is my custom voice speaking through VCB.</textarea>
-        </div>
+convertRec.addEventListener("click",async()=>{
+  if(!recordedBlob)return;
+  const name=(voiceNameInput.value||"my-voice").trim().replace(/[^\w\-]+/g,"-")||"my-voice";
+  convertRec.disabled=true;recStatus.textContent="Converting in browser…";recStatus.className="status";
+  try{
+    const {blob,voice}=await convertAudioToVcb(recordedBlob,{voiceName:name});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name+".vcb";a.click();
+    recStatus.textContent=`Created ${name}.vcb (pitch ~${voice.features.pitch_mean.toFixed(0)} Hz). Load it below.`;recStatus.className="status ok";
+  }catch(err){recStatus.textContent="Convert failed: "+err.message;recStatus.className="status err";console.error(err)}
+  convertRec.disabled=false;
+});
 
-        <div class="row">
-          <button id="speakBtn" disabled>Speak</button>
-          <button id="downloadSynth" class="secondary" disabled>Download WAV</button>
-        </div>
-        <div class="status" id="speakStatus"></div>
-      </div>
-    </section>
+downloadRec.addEventListener("click",()=>{if(!recordedBlob)return;const a=document.createElement("a");a.href=URL.createObjectURL(recordedBlob);a.download=`vcb-recording-${Date.now()}.webm`;a.click()});
+clearRec.addEventListener("click",()=>{recordedBlob=null;chunks=[];preview.src="";preview.style.display="none";convertRec.disabled=true;downloadRec.disabled=true;clearRec.disabled=true;timerEl.textContent="00:00";recStatus.textContent="";audioUpload.value=""});
 
-    <section class="card">
-      <h2>How it works</h2>
-      <div class="steps">
-        <div class="step">
-          <div class="n">1</div>
-          <div>Record or provide a clear speech sample (MP3 / WAV).</div>
-        </div>
-        <div class="step">
-          <div class="n">2</div>
-          <div>The Python package extracts pitch, formants, MFCCs and spectral features and packs them into a compact <code>.vcb</code> binary file.</div>
-        </div>
-        <div class="step">
-          <div class="n">3</div>
-          <div>Load the <code>.vcb</code> in Python or in the browser and synthesize any text with the characteristics of that voice.</div>
-        </div>
-      </div>
-      <p style="margin-top:1.25rem; color:var(--muted); font-size:0.9rem;">
-        Full source, CLI and JS API → 
-        <a href="https://github.com/SlabyLol/VCB" style="color:var(--accent);">github.com/SlabyLol/VCB</a>
-      </p>
-    </section>
-  </main>
+const vcbFile=document.getElementById("vcbFile"), voiceInfo=document.getElementById("voiceInfo");
+const voiceNameDisp=document.getElementById("voiceNameDisp"), voicePitch=document.getElementById("voicePitch");
+const voiceDur=document.getElementById("voiceDur"), speakText=document.getElementById("speakText");
+const speakBtn=document.getElementById("speakBtn"), downloadSynth=document.getElementById("downloadSynth");
+const speakStatus=document.getElementById("speakStatus");
+let currentVoice=null, lastSamples=null, lastSampleRate=22050;
 
-  <footer>
-    Copyright © 2026 <strong>DarkFox</strong> / DarkFox Co. · MIT License<br>
-    <a href="https://github.com/SlabyLol/VCB">GitHub</a> · 
-    <a href="https://github.com/SlabyLol/VCB#readme">Documentation</a>
-  </footer>
+vcbFile.addEventListener("change",async e=>{
+  const file=e.target.files?.[0];if(!file)return;
+  try{
+    speakStatus.textContent="Loading .vcb…";speakStatus.className="status";
+    currentVoice=await loadVcbFromFile(file);
+    voiceNameDisp.textContent=currentVoice.name;voicePitch.textContent=(currentVoice.features?.pitch_mean||0).toFixed(1);
+    voiceDur.textContent=(currentVoice.duration||0).toFixed(1);voiceInfo.classList.add("active");
+    speakBtn.disabled=false;downloadSynth.disabled=false;
+    speakStatus.textContent=`Voice "${currentVoice.name}" loaded.`;speakStatus.className="status ok";
+  }catch(err){currentVoice=null;speakBtn.disabled=true;downloadSynth.disabled=true;voiceInfo.classList.remove("active");speakStatus.textContent="Failed: "+err.message;speakStatus.className="status err"}
+});
 
-  <script type="module">
-    import { loadVcbFromFile, synthesize, speak, encodeWav } from "./js/vcb.js";
+speakBtn.addEventListener("click",async()=>{
+  if(!currentVoice)return;const text=speakText.value.trim();
+  if(!text){speakStatus.textContent="Enter some text.";speakStatus.className="status err";return}
+  try{
+    speakStatus.textContent="Synthesizing…";speakStatus.className="status";
+    const r=await synthesize(text,currentVoice);lastSamples=r.samples;lastSampleRate=r.sampleRate;
+    await speak(text,currentVoice);speakStatus.textContent="Playing…";speakStatus.className="status ok";
+  }catch(err){speakStatus.textContent="Error: "+err.message;speakStatus.className="status err"}
+});
 
-    const recBtn = document.getElementById("recBtn");
-    const timerEl = document.getElementById("timer");
-    const downloadRec = document.getElementById("downloadRec");
-    const clearRec = document.getElementById("clearRec");
-    const preview = document.getElementById("preview");
-    const recStatus = document.getElementById("recStatus");
-
-    let mediaRecorder = null;
-    let chunks = [];
-    let recStart = 0;
-    let timerInterval = null;
-    let recordedBlob = null;
-
-    function formatTime(ms) {
-      const s = Math.floor(ms / 1000);
-      const m = Math.floor(s / 60);
-      return `${String(m).padStart(2,"0")}:${String(s % 60).padStart(2,"0")}`;
-    }
-
-    recBtn.addEventListener("click", async () => {
-      if (mediaRecorder && mediaRecorder.state === "recording") {
-        mediaRecorder.stop();
-        return;
-      }
-
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        chunks = [];
-        mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
-
-        mediaRecorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
-        mediaRecorder.onstop = () => {
-          stream.getTracks().forEach(t => t.stop());
-          recordedBlob = new Blob(chunks, { type: "audio/webm" });
-          const url = URL.createObjectURL(recordedBlob);
-          preview.src = url;
-          preview.style.display = "block";
-          downloadRec.disabled = false;
-          clearRec.disabled = false;
-          recBtn.classList.remove("recording");
-          recBtn.textContent = "●";
-          clearInterval(timerInterval);
-          recStatus.textContent = "Recording ready – download and convert with the Python package.";
-          recStatus.className = "status ok";
-        };
-
-        mediaRecorder.start();
-        recStart = Date.now();
-        recBtn.classList.add("recording");
-        recBtn.textContent = "■";
-        recStatus.textContent = "Recording… speak clearly";
-        recStatus.className = "status";
-        timerInterval = setInterval(() => {
-          timerEl.textContent = formatTime(Date.now() - recStart);
-        }, 200);
-      } catch (err) {
-        recStatus.textContent = "Microphone access denied or unavailable.";
-        recStatus.className = "status err";
-        console.error(err);
-      }
-    });
-
-    downloadRec.addEventListener("click", () => {
-      if (!recordedBlob) return;
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(recordedBlob);
-      a.download = `vcb-recording-${Date.now()}.webm`;
-      a.click();
-    });
-
-    clearRec.addEventListener("click", () => {
-      recordedBlob = null;
-      chunks = [];
-      preview.src = "";
-      preview.style.display = "none";
-      downloadRec.disabled = true;
-      clearRec.disabled = true;
-      timerEl.textContent = "00:00";
-      recStatus.textContent = "";
-    });
-
-    const vcbFile = document.getElementById("vcbFile");
-    const voiceInfo = document.getElementById("voiceInfo");
-    const voiceName = document.getElementById("voiceName");
-    const voicePitch = document.getElementById("voicePitch");
-    const voiceDur = document.getElementById("voiceDur");
-    const speakText = document.getElementById("speakText");
-    const speakBtn = document.getElementById("speakBtn");
-    const downloadSynth = document.getElementById("downloadSynth");
-    const speakStatus = document.getElementById("speakStatus");
-
-    let currentVoice = null;
-    let lastSamples = null;
-    let lastSampleRate = 22050;
-
-    vcbFile.addEventListener("change", async (e) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      try {
-        speakStatus.textContent = "Loading .vcb…";
-        speakStatus.className = "status";
-        currentVoice = await loadVcbFromFile(file);
-        voiceName.textContent = currentVoice.name;
-        voicePitch.textContent = (currentVoice.features?.pitch_mean || 0).toFixed(1);
-        voiceDur.textContent = (currentVoice.duration || 0).toFixed(1);
-        voiceInfo.classList.add("active");
-        speakBtn.disabled = false;
-        downloadSynth.disabled = false;
-        speakStatus.textContent = `Voice "${currentVoice.name}" loaded.`;
-        speakStatus.className = "status ok";
-      } catch (err) {
-        currentVoice = null;
-        speakBtn.disabled = true;
-        downloadSynth.disabled = true;
-        voiceInfo.classList.remove("active");
-        speakStatus.textContent = "Failed to load .vcb: " + err.message;
-        speakStatus.className = "status err";
-        console.error(err);
-      }
-    });
-
-    speakBtn.addEventListener("click", async () => {
-      if (!currentVoice) return;
-      const text = speakText.value.trim();
-      if (!text) {
-        speakStatus.textContent = "Please enter some text.";
-        speakStatus.className = "status err";
-        return;
-      }
-      try {
-        speakStatus.textContent = "Synthesizing…";
-        speakStatus.className = "status";
-        const { samples, sampleRate } = await synthesize(text, currentVoice);
-        lastSamples = samples;
-        lastSampleRate = sampleRate;
-        await speak(text, currentVoice);
-        speakStatus.textContent = "Playing…";
-        speakStatus.className = "status ok";
-      } catch (err) {
-        speakStatus.textContent = "Error: " + err.message;
-        speakStatus.className = "status err";
-        console.error(err);
-      }
-    });
-
-    downloadSynth.addEventListener("click", async () => {
-      if (!currentVoice) return;
-      const text = speakText.value.trim() || "Hello from VCB";
-      try {
-        const { samples, sampleRate } = lastSamples
-          ? { samples: lastSamples, sampleRate: lastSampleRate }
-          : await synthesize(text, currentVoice);
-        const blob = encodeWav(samples, sampleRate);
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = `${currentVoice.name || "vcb"}-speech.wav`;
-        a.click();
-      } catch (err) {
-        speakStatus.textContent = "Download failed: " + err.message;
-        speakStatus.className = "status err";
-      }
-    });
-  </script>
+downloadSynth.addEventListener("click",async()=>{
+  if(!currentVoice)return;const text=speakText.value.trim()||"Hello from VCB";
+  try{
+    const r=lastSamples?{samples:lastSamples,sampleRate:lastSampleRate}:await synthesize(text,currentVoice);
+    const blob=encodeWav(r.samples,r.sampleRate);
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(currentVoice.name||"vcb")+"-speech.wav";a.click();
+  }catch(err){speakStatus.textContent="Download failed: "+err.message;speakStatus.className="status err"}
+});
+</script>
 </body>
 </html>
