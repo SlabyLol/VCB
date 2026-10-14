@@ -1,0 +1,19 @@
+{
+  "name": "vcb-js",
+  "version": "1.0.0",
+  "description": "VCB JavaScript API – convert audio to .vcb and synthesize speech in the browser",
+  "type": "module",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "exports": { ".": "./src/index.js" },
+  "files": ["src"],
+  "keywords": ["vcb", "voice", "tts", "speech-synthesis", "browser"],
+  "author": "DarkFox <darkfox@darkfoxco.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SlabyLol/VCB.git",
+    "directory": "js"
+  },
+  "homepage": "https://slabylol.github.io/VCB/"
+}
